@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Decimals to Percents Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 10px;
+      background-color: #f0f8ff;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    #question {
+      font-size: 24px;
+      margin: 20px;
+    }
+    .choices {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .choice {
+      padding: 10px 20px;
+      border: 2px solid #333;
+      cursor: pointer;
+      border-radius: 6px;
+      font-size: 20px;
+      background-color: #fff;
+      transition: background-color 0.3s;
+    }
+    .choice:hover {
+      background-color: #e0e0e0;
+    }
+    .correct {
+      background-color: lightgreen !important;
+    }
+    .incorrect {
+      background-color: lightcoral !important;
+    }
+    #feedback {
+      font-size: 20px;
+      margin: 20px;
+    }
+    #starCounter {
+      display: inline-block;
+      margin-right: 20px;
+    }
+    #message {
+      display: inline-block;
+      height: 24px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Decimals to Percents Game</h1>
+  <div id="question"></div>
+  <div class="choices" id="choices"></div>
+  <div id="feedback">
+    <span id="starCounter">⭐ 0</span>
+    <span id="message"></span>
+  </div>
+  
+  <script>
+    var starCount = 0;
+    function updateStarCounter() {
+      document.getElementById("starCounter").innerHTML = "⭐ " + starCount;
+    }
+    
+    // Generates a random decimal between 0.01 and 0.99 (with two decimal places)
+    function generateDecimal() {
+      return Math.floor(Math.random() * 99 + 1) / 100;
+    }
+    
+    // Generates a new question for converting a decimal to a percent.
+    function generateQuestion() {
+      document.getElementById("message").innerHTML = "";
+      var decimal = generateDecimal();
+      var percentValue = Math.round(decimal * 100); // Correct percentage value
+      var correctAnswer = percentValue + "%";
+      
+      // Build the question text.
+      var questionText = "Convert " + decimal.toFixed(2) + " to a percent.";
+      if (starCount < 3) {
+        questionText += "<br>Hint: Multiply the decimal by 100 and add the '%' sign.";
+      }
+      document.getElementById("question").innerHTML = questionText;
+      
+      // Create choices: include the correct answer and three distractors.
+      var choices = [];
+      choices.push(correctAnswer);
+      
+      // Distractor 1: Add 5 to the correct percentage.
+      var wrong1 = (percentValue + 5) + "%";
+      if (wrong1 !== correctAnswer) choices.push(wrong1);
+      
+      // Distractor 2: Subtract 5 (if result is positive), otherwise add 3.
+      var wrong2;
+      if (percentValue > 5) {
+        wrong2 = (percentValue - 5) + "%";
+      } else {
+        wrong2 = (percentValue + 3) + "%";
+      }
+      if (wrong2 !== correctAnswer) choices.push(wrong2);
+      
+      // Distractor 3: Add 10 to the correct percentage.
+      var wrong3 = (percentValue + 10) + "%";
+      if (wrong3 !== correctAnswer) choices.push(wrong3);
+      
+      // Ensure we have 4 unique choices.
+      while (choices.length < 4) {
+        var randomOffset = Math.floor(Math.random() * 11) - 5; // Offset between -5 and +5, excluding 0
+        if (randomOffset === 0) continue;
+        var candidate = (percentValue + randomOffset) + "%";
+        if (choices.indexOf(candidate) === -1 && (percentValue + randomOffset) > 0) {
+          choices.push(candidate);
+        }
+      }
+      
+      // Shuffle choices.
+      for (let i = choices.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [choices[i], choices[j]] = [choices[j], choices[i]];
+      }
+      
+      var choicesDiv = document.getElementById("choices");
+      choicesDiv.innerHTML = "";
+      for (var i = 0; i < choices.length; i++) {
+        var choice = choices[i];
+        var btn = document.createElement("div");
+        btn.className = "choice";
+        btn.innerHTML = choice;
+        btn.onclick = (function(selected, correct) {
+          return function() {
+            if (selected === correct) {
+              this.classList.add("correct");
+              document.getElementById("message").innerHTML = "Correct! 🎉";
+              starCount++;
+              updateStarCounter();
+              setTimeout(generateQuestion, 1000);
+            } else {
+              this.classList.add("incorrect");
+              document.getElementById("message").innerHTML = "Incorrect! ❌";
+              starCount--;
+              updateStarCounter();
+            }
+          };
+        })(choice, correctAnswer);
+        choicesDiv.appendChild(btn);
+      }
+    }
+    
+    window.onload = function() {
+      updateStarCounter();
+      generateQuestion();
+    };
+  </script>
+</body>
+</html>
