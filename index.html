@@ -69,66 +69,82 @@
   
   <script>
     var starCount = 0;
+    
     function updateStarCounter() {
       document.getElementById("starCounter").innerHTML = "⭐ " + starCount;
     }
     
-    // Generates a random decimal between 0.01 and 0.99 (with two decimal places)
+    // Helper to format a number as a percent.
+    function formatPercent(x) {
+      // Remove any trailing ".0" for whole numbers.
+      if (x % 1 === 0) {
+        return x + "%";
+      } else {
+        return x.toFixed(1) + "%";
+      }
+    }
+    
+    // Generates a random decimal.
+    // For starCount < 3, use a two-digit decimal (e.g., 0.30, 0.46).
+    // For starCount >= 3, use a three-digit decimal (e.g., 0.032, 0.075) to make it harder.
     function generateDecimal() {
-      return Math.floor(Math.random() * 99 + 1) / 100;
+      if (starCount < 3) {
+        // Generate an integer between 10 and 99 and divide by 100.
+        return Math.floor(Math.random() * 90 + 10) / 100;
+      } else {
+        // Generate an integer between 1 and 99 and divide by 1000.
+        // This produces decimals like 0.032, 0.075, etc.
+        return Math.floor(Math.random() * 99 + 1) / 1000;
+      }
     }
     
     // Generates a new question for converting a decimal to a percent.
     function generateQuestion() {
       document.getElementById("message").innerHTML = "";
       var decimal = generateDecimal();
-      var percentValue = Math.round(decimal * 100); // Correct percentage value
-      var correctAnswer = percentValue + "%";
+      // The correct conversion is multiplying by 100.
+      var correctValue = decimal * 100;
+      var correctAnswer = formatPercent(correctValue);
       
       // Build the question text.
-      var questionText = "Convert " + decimal.toFixed(2) + " to a percent.";
+      var questionText = "Convert " + decimal + " to a percent.";
       if (starCount < 3) {
         questionText += "<br>Hint: Multiply the decimal by 100 and add the '%' sign.";
+      } else {
+        questionText += "<br>Hint: Watch your decimal places carefully!";
       }
       document.getElementById("question").innerHTML = questionText;
       
-      // Create choices: include the correct answer and three distractors.
-      var choices = [];
-      choices.push(correctAnswer);
+      // Create distractors based on common mistakes:
+      // Option 1: Multiply by 10 instead of 100.
+      var option1 = formatPercent(decimal * 10);
+      // Option 2: Use the decimal itself as a percent.
+      var option2 = formatPercent(decimal * 1);
+      // Option 3: Multiply by 1000 (one extra zero).
+      var option3 = formatPercent(decimal * 1000);
       
-      // Distractor 1: Add 5 to the correct percentage.
-      var wrong1 = (percentValue + 5) + "%";
-      if (wrong1 !== correctAnswer) choices.push(wrong1);
+      // Put all choices together.
+      var choices = [correctAnswer, option1, option2, option3];
       
-      // Distractor 2: Subtract 5 (if result is positive), otherwise add 3.
-      var wrong2;
-      if (percentValue > 5) {
-        wrong2 = (percentValue - 5) + "%";
-      } else {
-        wrong2 = (percentValue + 3) + "%";
-      }
-      if (wrong2 !== correctAnswer) choices.push(wrong2);
-      
-      // Distractor 3: Add 10 to the correct percentage.
-      var wrong3 = (percentValue + 10) + "%";
-      if (wrong3 !== correctAnswer) choices.push(wrong3);
-      
-      // Ensure we have 4 unique choices.
+      // Ensure uniqueness (in rare cases they might coincide).
+      choices = Array.from(new Set(choices));
       while (choices.length < 4) {
-        var randomOffset = Math.floor(Math.random() * 11) - 5; // Offset between -5 and +5, excluding 0
-        if (randomOffset === 0) continue;
-        var candidate = (percentValue + randomOffset) + "%";
-        if (choices.indexOf(candidate) === -1 && (percentValue + randomOffset) > 0) {
+        // If we have less than 4 unique options, generate a random offset.
+        var randomFactor = (Math.floor(Math.random() * 11) - 5);
+        if (randomFactor === 0) continue;
+        var candidate = formatPercent(correctValue + randomFactor);
+        if (choices.indexOf(candidate) === -1 && candidate !== correctAnswer) {
           choices.push(candidate);
         }
       }
       
-      // Shuffle choices.
+      // Shuffle the choices.
       for (let i = choices.length - 1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1));
         [choices[i], choices[j]] = [choices[j], choices[i]];
       }
       
+      // Display choices.
       var choicesDiv = document.getElementById("choices");
       choicesDiv.innerHTML = "";
       for (var i = 0; i < choices.length; i++) {
