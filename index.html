@@ -80,21 +80,33 @@
       if (x % 1 === 0) {
         return x + "%";
       } else {
-        return x.toFixed(1) + "%";
+        return x.toFixed(2) + "%";
       }
     }
     
     // Generates a random decimal.
     // For starCount < 3, use a two-digit decimal (e.g., 0.30, 0.46).
-    // For starCount >= 3, use a three-digit decimal (e.g., 0.032, 0.075) to make it harder.
+    // For starCount >= 3, generate a variety of decimals (e.g., 22.1, 1.11, 1.001, 0.0003, etc.).
     function generateDecimal() {
       if (starCount < 3) {
         // Generate an integer between 10 and 99 and divide by 100.
         return Math.floor(Math.random() * 90 + 10) / 100;
       } else {
-        // Generate an integer between 1 and 99 and divide by 1000.
-        // This produces decimals like 0.032, 0.075, etc.
-        return Math.floor(Math.random() * 99 + 1) / 1000;
+        // Randomly choose the number of digits for the integer part (0 to 2 digits) 
+        // and the fractional part (1 to 4 digits).
+        var intDigits = Math.floor(Math.random() * 3); // 0, 1, or 2 digits for the integer part.
+        var fracDigits = Math.floor(Math.random() * 4) + 1; // 1 to 4 digits for the fractional part.
+        
+        // If no integer digits, set intPart to "0", otherwise, generate a number with the desired digits (avoid leading zeros).
+        var intPart = intDigits === 0 ? "0" : Math.floor(Math.random() * Math.pow(10, intDigits)).toString();
+        // Ensure that if intDigits > 0, intPart is at least 1 (to avoid an empty string).
+        if (intPart === "" || intPart === "0" && intDigits > 0) {
+          intPart = Math.floor(Math.random() * 9 + 1).toString();
+        }
+        // Generate the fractional part with the specified number of digits, padding with leading zeros if necessary.
+        var fracPart = Math.floor(Math.random() * Math.pow(10, fracDigits)).toString().padStart(fracDigits, '0');
+        
+        return parseFloat(intPart + "." + fracPart);
       }
     }
     
@@ -102,7 +114,7 @@
     function generateQuestion() {
       document.getElementById("message").innerHTML = "";
       var decimal = generateDecimal();
-      // The correct conversion is multiplying by 100.
+      // The correct conversion is multiplying the decimal by 100.
       var correctValue = decimal * 100;
       var correctAnswer = formatPercent(correctValue);
       
@@ -126,10 +138,9 @@
       // Put all choices together.
       var choices = [correctAnswer, option1, option2, option3];
       
-      // Ensure uniqueness (in rare cases they might coincide).
+      // Ensure uniqueness.
       choices = Array.from(new Set(choices));
       while (choices.length < 4) {
-        // If we have less than 4 unique options, generate a random offset.
         var randomFactor = (Math.floor(Math.random() * 11) - 5);
         if (randomFactor === 0) continue;
         var candidate = formatPercent(correctValue + randomFactor);
